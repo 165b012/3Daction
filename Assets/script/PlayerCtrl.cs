@@ -1,16 +1,19 @@
 ﻿using UnityEngine;
 using System.Collections;
 
-public class PlayerCtrl : MonoBehaviour {
+public class PlayerCtrl : MonoBehaviour
+{
 	const float RayCastMaxDistance = 100.0f;
 	CharacterStatus status;
 	CharaAnimation charaAnimation;
 	Transform attackTarget;
 	InputManager inputManager;
 	public float attackRange = 1.5f;
+	GameRuleCtrl gameRuleCtrl;
 
 	// ステートの種類.
-	enum State {
+	enum State
+	{
 		Walking,
 		Attacking,
 		Died,
@@ -21,15 +24,19 @@ public class PlayerCtrl : MonoBehaviour {
 
 
 	// Use this for initialization
-	void Start () {
+	void Start()
+	{
 		status = GetComponent<CharacterStatus>();
 		charaAnimation = GetComponent<CharaAnimation>();
 		inputManager = FindObjectOfType<InputManager>();
+		gameRuleCtrl = FindObjectOfType<GameRuleCtrl>();
 	}
 
 	// Update is called once per frame
-	void Update () {
-		switch (state) {
+	void Update()
+	{
+		switch (state)
+		{
 		case State.Walking:
 			Walking();
 			break;
@@ -41,7 +48,8 @@ public class PlayerCtrl : MonoBehaviour {
 		if (state != nextState)
 		{
 			state = nextState;
-			switch (state) {
+			switch (state)
+			{
 			case State.Walking:
 				WalkStart();
 				break;
@@ -69,26 +77,31 @@ public class PlayerCtrl : MonoBehaviour {
 
 	void Walking()
 	{
-		if (inputManager.Clicked()) {
+		if (inputManager.Clicked())
+		{
 			// RayCastで対象物を調べる.
 			Ray ray = Camera.main.ScreenPointToRay(inputManager.GetCursorPosition());
 			RaycastHit hitInfo;
-			if (Physics.Raycast(ray,out hitInfo,RayCastMaxDistance,(1<<LayerMask.NameToLayer("Ground"))|(1<<LayerMask.NameToLayer("EnemyHit")))) {
+			if (Physics.Raycast(ray, out hitInfo, RayCastMaxDistance, (1 << LayerMask.NameToLayer("Ground")) | (1 << LayerMask.NameToLayer("EnemyHit"))))
+			{
 				// 地面がクリックされた.
 				if (hitInfo.collider.gameObject.layer == LayerMask.NameToLayer("Ground"))
-					SendMessage("SetDestination",hitInfo.point);
+					SendMessage("SetDestination", hitInfo.point);
 				// 敵がクリックされた.
-				if (hitInfo.collider.gameObject.layer == LayerMask.NameToLayer("EnemyHit")) {
+				if (hitInfo.collider.gameObject.layer == LayerMask.NameToLayer("EnemyHit"))
+				{
 					// 水平距離をチェックして攻撃するか決める.
 					Vector3 hitPoint = hitInfo.point;
 					hitPoint.y = transform.position.y;
-					float distance = Vector3.Distance(hitPoint,transform.position);
-					if (distance < attackRange) {
+					float distance = Vector3.Distance(hitPoint, transform.position);
+					if (distance < attackRange)
+					{
 						// 攻撃.
 						attackTarget = hitInfo.collider.transform;
 						ChangeState(State.Attacking);
-					} else
-						SendMessage("SetDestination",hitInfo.point);
+					}
+					else
+						SendMessage("SetDestination", hitInfo.point);
 				}
 			}
 		}
@@ -101,8 +114,8 @@ public class PlayerCtrl : MonoBehaviour {
 		status.attacking = true;
 
 		// 敵の方向に振り向かせる.
-		Vector3 targetDirection = (attackTarget.position-transform.position).normalized;
-		SendMessage("SetDirection",targetDirection);
+		Vector3 targetDirection = (attackTarget.position - transform.position).normalized;
+		SendMessage("SetDirection", targetDirection);
 
 		// 移動を止める.
 		SendMessage("StopMove");
@@ -118,12 +131,14 @@ public class PlayerCtrl : MonoBehaviour {
 	void Died()
 	{
 		status.died = true;
+		gameRuleCtrl.GameOver();
 	}
 
 	void Damage(AttackArea.AttackInfo attackInfo)
 	{
 		status.HP -= attackInfo.attackPower;
-		if (status.HP <= 0) {
+		if (status.HP <= 0)
+		{
 			status.HP = 0;
 			// 体力０なので死亡ステートへ.
 			ChangeState(State.Died);
@@ -137,3 +152,4 @@ public class PlayerCtrl : MonoBehaviour {
 		status.died = false;
 	}
 }
+

@@ -6,6 +6,8 @@ public class EnemyCtrl : MonoBehaviour {
 	CharaAnimation charaAnimation;
 	CharacterMove characterMove;
 	Transform attackTarget;
+	GameRuleCtrl gameRuleCtrl;
+
 	// 待機時間は２秒とする
 	public float waitBaseTime = 2.0f;
 	// 残り待機時間
@@ -33,7 +35,8 @@ public class EnemyCtrl : MonoBehaviour {
 	void Start () {
 		status = GetComponent<CharacterStatus>();
 		charaAnimation = GetComponent<CharaAnimation>();
-		characterMove = GetComponent<CharacterMove>(); 
+		characterMove = GetComponent<CharacterMove>();
+		gameRuleCtrl = FindObjectOfType<GameRuleCtrl>();
 		// 初期位置を保持
 		basePosition = transform.position;
 		// 待機時間
@@ -173,6 +176,10 @@ public class EnemyCtrl : MonoBehaviour {
 		status.died = true;
 		dropItem();
 		Destroy(gameObject);
+		if (gameObject.tag == "Boss")
+		{
+			gameRuleCtrl.GameClear();
+		}
 	}
 
 	void Damage(AttackArea.AttackInfo attackInfo)
